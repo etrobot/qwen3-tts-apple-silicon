@@ -1,0 +1,84 @@
+# Large model files (users download separately)
+models/
+
+# Virtual environment
+.venv/
+.uv/
+.python-version
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyi
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Temp files
+temp_*/
+temp_convert_*.wav
+temp_clone_*/
+
+# User data (keep folder structure)
+voices/*
+!voices/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.eggs/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ML/AI artifacts
+*.h5
+*.pkl
+*.joblib
+*.npy
+*.npz
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Test files (optional - remove if you want to keep them)
+taiwan_reference.*
+generate_taiwan_audio.py
+test_voice_cloning.py
+download_model.py
