@@ -111,7 +111,164 @@ Select:
 
 ---
 
-## Tips
+## API Server
+
+A local REST API server is included for programmatic access to TTS functionality.
+
+### Start the API Server
+
+```bash
+source .venv/bin/activate
+python api_server.py
+```
+
+The API will be available at `http://localhost:6111`
+Interactive API documentation: `http://localhost:6111/docs`
+
+### API Endpoints
+
+#### `GET /` - Server Info
+Returns API information and available endpoints.
+
+#### `GET /models` - List Available Models
+Lists all TTS models and their availability status.
+
+**Response:**
+```json
+{
+  "models": {
+    "custom_pro": {"name": "Custom Voice Pro", "mode": "custom", "available": true},
+    "design_pro": {"name": "Voice Design Pro", "mode": "design", "available": true},
+    "clone_pro": {"name": "Voice Cloning Pro", "mode": "clone", "available": true},
+    "custom_lite": {"name": "Custom Voice Lite", "mode": "custom", "available": true},
+    "design_lite": {"name": "Voice Design Lite", "mode": "design", "available": true},
+    "clone_lite": {"name": "Voice Cloning Lite", "mode": "clone", "available": true}
+  }
+}
+```
+
+#### `GET /speakers` - List Available Speakers
+Returns available preset speakers by language.
+
+#### `GET /voices` - List Saved Voices
+Returns list of saved voice clones.
+
+#### `POST /tts` - Text-to-Speech with Custom Voice
+Generate speech using preset speakers with emotion and speed control.
+
+**Request Body:**
+```json
+{
+  "text": "Hello, world!",
+  "model": "custom_lite",
+  "speaker": "Vivian",
+  "emotion": "Normal tone",
+  "speed": 1.0
+}
+```
+
+**Response:** WAV audio file
+
+#### `POST /voice-design` - Voice Design
+Generate speech by describing the desired voice.
+
+**Request Body:**
+```json
+{
+  "text": "Hello, world!",
+  "model": "design_lite",
+  "voice_description": "calm British narrator"
+}
+```
+
+**Response:** WAV audio file
+
+#### `POST /voice-clone` - Voice Cloning
+Clone a voice from reference audio.
+
+**Request Body:**
+```json
+{
+  "text": "Hello, world!",
+  "model": "clone_lite",
+  "voice_name": "Boss",
+  "ref_text": "Optional transcript"
+}
+```
+
+Or use reference audio path:
+```json
+{
+  "text": "Hello, world!",
+  "model": "clone_lite",
+  "ref_audio_path": "/path/to/reference.wav",
+  "ref_text": "Optional transcript"
+}
+```
+
+**Response:** WAV audio file
+
+#### `POST /upload-voice` - Upload Voice for Cloning
+Upload a reference audio file to save for voice cloning.
+
+**Form Data:**
+- `voice_name`: Name for the saved voice
+- `reference_audio`: WAV audio file
+- `transcript`: Exact transcript of the audio
+
+#### `POST /clear-cache` - Clear Model Cache
+Clear loaded models from memory to free RAM.
+
+### Example Usage with cURL
+
+```bash
+# Generate speech with custom voice
+curl -X POST "http://localhost:6111/tts" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello, world!","model":"custom_lite","speaker":"Vivian"}' \
+  --output output.wav
+
+# Voice design
+curl -X POST "http://localhost:6111/voice-design" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello, world!","model":"design_lite","voice_description":"excited child"}' \
+  --output output.wav
+
+# Voice cloning with saved voice
+curl -X POST "http://localhost:6111/voice-clone" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello, world!","model":"clone_lite","voice_name":"Boss"}' \
+  --output output.wav
+
+# Upload voice
+curl -X POST "http://localhost:6111/upload-voice" \
+  -F "voice_name=Boss" \
+  -F "reference_audio=@reference.wav" \
+  -F "transcript=This is the exact transcript"
+```
+
+### Example Usage with Python
+
+```python
+import requests
+
+# Generate speech
+response = requests.post(
+    "http://localhost:6111/tts",
+    json={
+        "text": "Hello, world!",
+        "model": "custom_lite",
+        "speaker": "Vivian",
+        "emotion": "Normal tone",
+        "speed": 1.0
+    }
+)
+
+with open("output.wav", "wb") as f:
+    f.write(response.content)
+```
+
+---
 
 - Drag `.txt` files directly into the terminal for long text
 - Voice cloning works best with clean 5-10 second audio clips

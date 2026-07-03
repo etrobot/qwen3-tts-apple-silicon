@@ -82,3 +82,4 @@ taiwan_reference.*
 generate_taiwan_audio.py
 test_voice_cloning.py
 download_model.py
+ref/
