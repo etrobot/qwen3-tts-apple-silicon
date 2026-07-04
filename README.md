@@ -113,159 +113,103 @@ Select:
 
 ## API Server
 
-A local REST API server is included for programmatic access to TTS functionality.
+A local REST API server for voice cloning TTS with word-level timestamps.
 
 ### Start the API Server
 
 ```bash
-source .venv/bin/activate
-python api_server.py
+uv run python clone_api_server.py
 ```
 
 The API will be available at `http://localhost:6111`
 Interactive API documentation: `http://localhost:6111/docs`
 
+### Prerequisites
+
+Place a reference voice file at `ref/01/voice.m4a` and its transcript at `ref/01/ref.txt`. The server uses this as the default voice for cloning.
+
 ### API Endpoints
 
 #### `GET /` - Server Info
-Returns API information and available endpoints.
+Returns API information and the current reference voice details.
 
-#### `GET /models` - List Available Models
-Lists all TTS models and their availability status.
-
-**Response:**
-```json
-{
-  "models": {
-    "custom_pro": {"name": "Custom Voice Pro", "mode": "custom", "available": true},
-    "design_pro": {"name": "Voice Design Pro", "mode": "design", "available": true},
-    "clone_pro": {"name": "Voice Cloning Pro", "mode": "clone", "available": true},
-    "base": {"name": "Custom Voice Lite", "mode": "custom", "available": true},
-    "design_lite": {"name": "Voice Design Lite", "mode": "design", "available": true},
-    "clone_lite": {"name": "Voice Cloning Lite", "mode": "clone", "available": true}
-  }
-}
-```
-
-#### `GET /speakers` - List Available Speakers
-Returns available preset speakers by language.
-
-#### `GET /voices` - List Saved Voices
-Returns list of saved voice clones.
-
-#### `POST /tts` - Text-to-Speech with Custom Voice
-Generate speech using preset speakers with emotion and speed control.
+#### `POST /tts` - Text-to-Speech with Timestamps
+Generate cloned speech and optionally return word-level timestamps via ForcedAligner.
 
 **Request Body:**
 ```json
 {
   "text": "Hello, world!",
-  "model": "base",
-  "speaker": "Vivian",
-  "emotion": "Normal tone",
-  "speed": 1.0
+  "return_timestamps": true
 }
 ```
 
-**Response:** WAV audio file
-
-#### `POST /voice-design` - Voice Design
-Generate speech by describing the desired voice.
-
-**Request Body:**
+**Response:** JSON with base64 audio + timestamps
 ```json
 {
-  "text": "Hello, world!",
-  "model": "design_lite",
-  "voice_description": "calm British narrator"
+  "audio_base64": "UklGRiQAAABXQVZFZm10IBAAAAABAAEA...",
+  "sample_rate": 24000,
+  "duration": 2.88,
+  "timestamps": [
+    {"text": "你", "start_time": 0.0, "end_time": 1.68},
+    {"text": "好", "start_time": 1.68, "end_time": 1.84}
+  ]
 }
 ```
 
-**Response:** WAV audio file
-
-#### `POST /voice-clone` - Voice Cloning
-Clone a voice from reference audio.
-
-**Request Body:**
-```json
-{
-  "text": "Hello, world!",
-  "model": "clone_lite",
-  "voice_name": "Boss",
-  "ref_text": "Optional transcript"
-}
-```
-
-Or use reference audio path:
-```json
-{
-  "text": "Hello, world!",
-  "model": "clone_lite",
-  "ref_audio_path": "/path/to/reference.wav",
-  "ref_text": "Optional transcript"
-}
-```
-
-**Response:** WAV audio file
-
-#### `POST /upload-voice` - Upload Voice for Cloning
-Upload a reference audio file to save for voice cloning.
-
-**Form Data:**
-- `voice_name`: Name for the saved voice
-- `reference_audio`: WAV audio file
-- `transcript`: Exact transcript of the audio
-
-#### `POST /clear-cache` - Clear Model Cache
-Clear loaded models from memory to free RAM.
+#### `POST /tts/file` - Text-to-Speech (WAV File)
+Same as `/tts` but returns raw WAV audio file (no timestamps).
 
 ### Example Usage with cURL
 
 ```bash
-# Generate speech with custom voice
+# Generate speech with timestamps (JSON response)
 curl -X POST "http://localhost:6111/tts" \
   -H "Content-Type: application/json" \
-  -d '{"text":"Hello, world!","model":"base","speaker":"Vivian"}' \
-  --output output.wav
+  -d '{"text": "你好世界", "return_timestamps": true}'
 
-# Voice design
-curl -X POST "http://localhost:6111/voice-design" \
+# Generate speech as WAV file
+curl -X POST "http://localhost:6111/tts/file" \
   -H "Content-Type: application/json" \
-  -d '{"text":"Hello, world!","model":"design_lite","voice_description":"excited child"}' \
+  -d '{"text": "你好世界"}' \
   --output output.wav
-
-# Voice cloning with saved voice
-curl -X POST "http://localhost:6111/voice-clone" \
-  -H "Content-Type: application/json" \
-  -d '{"text":"Hello, world!","model":"clone_lite","voice_name":"Boss"}' \
-  --output output.wav
-
-# Upload voice
-curl -X POST "http://localhost:6111/upload-voice" \
-  -F "voice_name=Boss" \
-  -F "reference_audio=@reference.wav" \
-  -F "transcript=This is the exact transcript"
 ```
 
 ### Example Usage with Python
 
 ```python
 import requests
+import base64
 
-# Generate speech
 response = requests.post(
     "http://localhost:6111/tts",
-    json={
-        "text": "Hello, world!",
-        "model": "base",
-        "speaker": "Vivian",
-        "emotion": "Normal tone",
-        "speed": 1.0
-    }
+    json={"text": "你好世界", "return_timestamps": True}
 )
+data = response.json()
 
+# Save audio
+audio_bytes = base64.b64decode(data["audio_base64"])
 with open("output.wav", "wb") as f:
-    f.write(response.content)
+    f.write(audio_bytes)
+
+# Print timestamps
+for ts in data["timestamps"]:
+    print(f"[{ts['start_time']:.2f}s - {ts['end_time']:.2f}s] {ts['text']}")
+```
+
+### Example Usage with JavaScript
+
+```javascript
+const response = await fetch("http://localhost:6111/tts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: "你好世界", return_timestamps: true })
+});
+const data = await response.json();
+
+// Play audio
+const audio = new Audio(`data:audio/wav;base64,${data.audio_base64}`);
+audio.play();
 ```
 
 ---
