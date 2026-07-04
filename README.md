@@ -140,7 +140,7 @@ Lists all TTS models and their availability status.
     "custom_pro": {"name": "Custom Voice Pro", "mode": "custom", "available": true},
     "design_pro": {"name": "Voice Design Pro", "mode": "design", "available": true},
     "clone_pro": {"name": "Voice Cloning Pro", "mode": "clone", "available": true},
-    "custom_lite": {"name": "Custom Voice Lite", "mode": "custom", "available": true},
+    "base": {"name": "Custom Voice Lite", "mode": "custom", "available": true},
     "design_lite": {"name": "Voice Design Lite", "mode": "design", "available": true},
     "clone_lite": {"name": "Voice Cloning Lite", "mode": "clone", "available": true}
   }
@@ -160,7 +160,7 @@ Generate speech using preset speakers with emotion and speed control.
 ```json
 {
   "text": "Hello, world!",
-  "model": "custom_lite",
+  "model": "base",
   "speaker": "Vivian",
   "emotion": "Normal tone",
   "speed": 1.0
@@ -225,7 +225,7 @@ Clear loaded models from memory to free RAM.
 # Generate speech with custom voice
 curl -X POST "http://localhost:6111/tts" \
   -H "Content-Type: application/json" \
-  -d '{"text":"Hello, world!","model":"custom_lite","speaker":"Vivian"}' \
+  -d '{"text":"Hello, world!","model":"base","speaker":"Vivian"}' \
   --output output.wav
 
 # Voice design
@@ -257,7 +257,7 @@ response = requests.post(
     "http://localhost:6111/tts",
     json={
         "text": "Hello, world!",
-        "model": "custom_lite",
+        "model": "base",
         "speaker": "Vivian",
         "emotion": "Normal tone",
         "speed": 1.0

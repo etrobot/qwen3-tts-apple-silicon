@@ -70,7 +70,7 @@ app.add_middleware(
 # Pydantic models
 class TTSRequest(BaseModel):
     text: str
-    model: str = "custom_lite"
+    model: str = "base"
     speaker: Optional[str] = "Vivian"
     emotion: Optional[str] = "Normal tone"
     speed: Optional[float] = 1.0
